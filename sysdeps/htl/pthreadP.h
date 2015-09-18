@@ -25,6 +25,7 @@
 
 extern pthread_t __pthread_self (void);
 extern int __pthread_kill (pthread_t threadid, int signo);
+extern int __pthread_kill_internal (pthread_t threadid, int signo);
 extern struct __pthread **__pthread_threads;
 
 extern int _pthread_mutex_init (pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);

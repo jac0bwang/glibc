@@ -1,5 +1,5 @@
-/* Send a signal to a specific pthread.  Stub version.
-   Copyright (C) 2014-2019 Free Software Foundation, Inc.
+/* Send a signal to a specific pthread.  Internal version.
+   Copyright (C) 2002-2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,24 +16,11 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <signal.h>
 #include <pthreadP.h>
 
-
 int
-__pthread_kill (pthread_t threadid, int signo)
+__pthread_kill_internal (pthread_t threadid, int signo)
 {
-  struct pthread *pd = (struct pthread *) threadid;
-
-  /* Make sure the descriptor is valid.  */
-  if (DEBUGGING_P && INVALID_TD_P (pd))
-    /* Not a valid thread handle.  */
-    return ESRCH;
-
-  if (__is_internal_signal (signo))
-    return EINVAL;
-
-  return __pthread_kill_internal (threadid, signo);
+  return ENOSYS;
 }
-strong_alias (__pthread_kill, pthread_kill)
+hidden_def (__pthread_kill_internal)

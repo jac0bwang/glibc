@@ -74,6 +74,12 @@
      ? -INTERNAL_SYSCALL_ERRNO (__ret, __err) : 0);                     \
   })
 
+#define lll_futex_syscall_cp(...)					\
+  ({                                                                    \
+    long int __ret = INTERNAL_SYSCALL_CANCEL (futex, __VA_ARGS__);	\
+    __ret;								\
+  })
+
 #define lll_futex_wait(futexp, val, private) \
   lll_futex_timed_wait (futexp, val, NULL, private)
 
@@ -148,19 +154,36 @@
 
 /* Cancellable futex macros.  */
 #define lll_futex_wait_cancel(futexp, val, private) \
-  ({                                                                   \
-    int __oldtype = CANCEL_ASYNC ();				       \
-    long int __err = lll_futex_wait (futexp, val, LLL_SHARED);	       \
-    CANCEL_RESET (__oldtype);					       \
-    __err;							       \
+  lll_futex_timed_wait_cancel (futexp, val, NULL, private)
+
+#define lll_futex_timed_wait_cancel(futexp, val, timeout, private)	\
+  ({									\
+    long int __ret;							\
+    int __op = FUTEX_WAIT;						\
+    __ret = lll_futex_syscall_cp (futexp,				\
+				  __lll_private_flag (__op, private),	\
+				  val, timeout);			\
+    __ret;								\
   })
 
-#define lll_futex_timed_wait_cancel(futexp, val, timeout, private)	   \
-  ({									   \
-    int __oldtype = CANCEL_ASYNC ();				       	   \
-    long int __err = lll_futex_timed_wait (futexp, val, timeout, private); \
-    CANCEL_RESET (__oldtype);						   \
-    __err;								   \
+#define lll_futex_clock_wait_bitset_cancel(futexp, val, clockid,	\
+					   timeout, private)		\
+  ({									\
+    long int __ret;							\
+    if (lll_futex_supported_clockid (clockid))                          \
+      {                                                                 \
+        const unsigned int clockbit =                                   \
+          (clockid == CLOCK_REALTIME) ? FUTEX_CLOCK_REALTIME : 0;       \
+        const int op =                                                  \
+          __lll_private_flag (FUTEX_WAIT_BITSET | clockbit, private);   \
+									\
+	__ret = lll_futex_syscall_cp (futexp, op, val,			\
+                                      timeout, NULL /* Unused.  */,	\
+                                      FUTEX_BITSET_MATCH_ANY);		\
+      }									\
+    else								\
+      __ret = -EINVAL;							\
+    __ret;								\
   })
 
 #endif  /* !__ASSEMBLER__  */
