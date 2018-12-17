@@ -84,16 +84,24 @@ struct __siginfo_sparc64_fpu
   unsigned int si_fprs;
 };
 
+/* Different that other architectures, SPARC32 pass a pt_regs (or pt_regs32
+   in 32 bits compat mode) struct pointer as third argument for sa_sigaction
+   handler with SA_SIGINFO.  */
 static void
-register_dump (int fd, SIGCONTEXT ctx)
+register_dump (int fd, void *ctx)
 {
   char regs[36][8];
   char fregs[68][8];
   struct iovec iov[150];
   size_t nr = 0;
   int i;
-  unsigned int *r = (unsigned int *)
-    ctx->si_regs.u_regs[14];
+  struct pt_regs32 *ptregs = (struct pt_regs32 *) ctx;
+  struct compat_sigset_t
+  {
+    unsigned int sig[2];
+  };
+  struct compat_sigset_t *mask = (struct compat_sigset_t *)(ptregs + 1);
+  unsigned int *r = (unsigned int *) ptregs->u_regs[14];
 
 #define ADD_STRING(str) \
   iov[nr].iov_base = (char *) str;					      \
@@ -105,15 +113,16 @@ register_dump (int fd, SIGCONTEXT ctx)
   ++nr
 
   /* Generate strings of register contents.  */
-  hexvalue (ctx->si_regs.psr, regs[0], 8);
-  hexvalue (ctx->si_regs.pc, regs[1], 8);
-  hexvalue (ctx->si_regs.npc, regs[2], 8);
-  hexvalue (ctx->si_regs.y, regs[3], 8);
+  hexvalue (ptregs->psr, regs[0], 8);
+  hexvalue (ptregs->pc, regs[1], 8);
+  hexvalue (ptregs->npc, regs[2], 8);
+  hexvalue (ptregs->y, regs[3], 8);
   for (i = 1; i <= 15; i++)
-    hexvalue (ctx->si_regs.u_regs[i], regs[3+i], 8);
+    hexvalue (ptregs->u_regs[i], regs[3+i], 8);
   for (i = 0; i <= 15; i++)
     hexvalue (r[i], regs[19+i], 8);
-  hexvalue (ctx->si_mask, regs[35], 8);
+
+  hexvalue (mask->sig[0], regs[35], 8);
 
   /* Generate the output.  */
   ADD_STRING ("Register dump:\n\n PSR: ");
@@ -189,11 +198,11 @@ register_dump (int fd, SIGCONTEXT ctx)
   ADD_STRING ("\n\n Old mask: ");
   ADD_MEM (regs[35], 8);
 
-  if ((ctx->si_regs.psr & 0xff000000) == 0xff000000)
+  if ((ptregs->psr & 0xff000000) == 0xff000000)
     {
-      struct __siginfo_sparc64_fpu *f;
+      struct __siginfo_sparc64_fpu *f = *(struct __siginfo_sparc64_fpu **)
+	(mask + 1);
 
-      f = *(struct __siginfo_sparc64_fpu **) (ctx + 1);
       if (f != NULL)
 	{
 	  for (i = 0; i < 64; i++)
@@ -277,9 +286,9 @@ register_dump (int fd, SIGCONTEXT ctx)
     }
   else
     {
-      struct __siginfo_sparc32_fpu *f;
+      struct __siginfo_sparc32_fpu *f = *(struct __siginfo_sparc32_fpu **)
+	(mask + 1);
 
-      f = *(struct __siginfo_sparc32_fpu **) (ctx + 1);
       if (f != NULL)
 	{
 	  for (i = 0; i < 32; i++)
