@@ -1,5 +1,6 @@
-/* Old SysV permission definition for Linux.  x86_64 version.
-   Copyright (C) 2016-2019 Free Software Foundation, Inc.
+/* Set flags signalling availability of kernel features based on given
+   kernel version number.  NIOS2 version.
+   Copyright (C) 2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -13,20 +14,9 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
+   License along with the GNU C Library.  If not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <sys/ipc.h>  /* For __key_t  */
+#include_next <kernel-features.h>
 
-#define __IPC_64	0x0
-
-struct __old_ipc_perm
-{
-  __key_t __key;		/* Key.  */
-  unsigned short uid;		/* Owner's user ID.  */
-  unsigned short gid;		/* Owner's group ID.  */
-  unsigned short cuid;		/* Creator's user ID.  */
-  unsigned short cgid;		/* Creator's group ID.  */
-  unsigned short mode;		/* Read/write permission.  */
-  unsigned short int __seq;	/* Sequence number.  */
-};
+#undef __ASSUME_SYSVIPC_DEFAULT_IPC_64

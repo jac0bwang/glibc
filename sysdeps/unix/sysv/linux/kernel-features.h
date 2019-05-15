@@ -80,6 +80,9 @@
 /* Support for SysV IPC through wired syscalls.  All supported architectures
    either support ipc syscall and/or all the ipc correspondent syscalls.  */
 #define __ASSUME_DIRECT_SYSVIPC_SYSCALLS	1
+/* The generic default __IPC_64 value is 0x0, however some architectures
+   require a different value of 0x100.  */
+#define __ASSUME_SYSVIPC_DEFAULT_IPC_64		1
 
 /* Support for p{read,write}v2 was added in 4.6.  However Linux default
    implementation does not assume the __ASSUME_* and instead use a fallback

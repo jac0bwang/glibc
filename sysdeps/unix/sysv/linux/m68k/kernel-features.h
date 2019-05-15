@@ -52,3 +52,4 @@
 
 /* m68k only supports ipc syscall.  */
 #undef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+#undef __ASSUME_SYSVIPC_DEFAULT_IPC_64

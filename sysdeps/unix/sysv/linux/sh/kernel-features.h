@@ -43,6 +43,7 @@
 
 /* sh only supports ipc syscall.  */
 #undef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+#undef __ASSUME_SYSVIPC_DEFAULT_IPC_64
 
 /* Support for several syscalls was added in 4.8.  */
 #if __LINUX_KERNEL_VERSION < 0x040800
