@@ -26,7 +26,9 @@
 int
 semop (int semid, struct sembuf *sops, size_t nsops)
 {
-#ifdef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+  /* semop wire-up syscall is not exported for 32-bit ABIs (they have
+     semtimedop_time64 instead with uses a 64-bit time_t).  */
+#if defined __ASSUME_DIRECT_SYSVIPC_SYSCALLS && defined __NR_semop
   return INLINE_SYSCALL_CALL (semop, semid, sops, nsops);
 #else
   return INLINE_SYSCALL_CALL (ipc, IPCOP_semop, semid, nsops, 0, sops);

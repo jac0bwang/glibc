@@ -41,9 +41,11 @@
    before the offset.  */
 #define __ASSUME_PRW_DUMMY_ARG	1
 
-/* sh only supports ipc syscall.  */
-#undef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
-#undef __ASSUME_SYSVIPC_DEFAULT_IPC_64
+/* sh only supports ipc syscall before 5.1.  */
+#if __LINUX_KERNEL_VERSION < 0x050100
+# undef __ASSUME_DIRECT_SYSVIPC_SYSCALLS
+# undef __ASSUME_SYSVIPC_DEFAULT_IPC_64
+#endif
 
 /* Support for several syscalls was added in 4.8.  */
 #if __LINUX_KERNEL_VERSION < 0x040800
