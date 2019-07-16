@@ -1,5 +1,5 @@
-/* Multiple versions of ieee754_hypotf.
-   Copyright (C) 2013-2019 Free Software Foundation, Inc.
+/* Finite math compatibility macros.
+   Copyright (C) 2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,18 +16,24 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
-#include <math.h>
-#include <math_private.h>
-#include <math_ldbl_opt.h>
-#include <libm-alias-finite.h>
-#include "init-arch.h"
+#ifndef _LIBM_ALIAS_FINITE_H
+#define _LIBM_ALIAS_FINITE_H
 
-extern __typeof (__ieee754_hypotf) __ieee754_hypotf_ppc32 attribute_hidden;
-extern __typeof (__ieee754_hypotf) __ieee754_hypotf_power7 attribute_hidden;
+#include <first-versions.h>
+#include <shlib-compat.h>
 
-libc_ifunc (__ieee754_hypotf,
-	    (hwcap & PPC_FEATURE_ARCH_2_06)
-	    ? __ieee754_hypotf_power7
-            : __ieee754_hypotf_ppc32);
+/* The -ffinite-math symbols were added on GLIBC 2.15 and moved to compat
+   symbol so newer architectures do not require to support it.  */
+#if SHLIB_COMPAT (libm, GLIBC_2_15, GLIBC_2_30)
+# define libm_alias_finite(from, to)				\
+  libm_alias_finite1(from, to)
+# define libm_alias_finite1(from, to)				\
+compat_symbol (libm,						\
+	       from,						\
+	       to ## _finite, 					\
+	       FIRST_VERSION_libm_ ## to ## _finite);
+#else
+# define libm_alias_finite(from, to)
+#endif
 
-libm_alias_finite (__ieee754_hypotf, __hypotf)
+#endif
