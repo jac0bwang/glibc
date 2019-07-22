@@ -17,6 +17,7 @@
    License along with the GNU C Library.  If not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <endian.h>
 #include_next <kernel-features.h>
 
 /* The ARM kernel before 3.14.3 may or may not support
@@ -51,3 +52,6 @@
 #define __ASSUME_CLONE_BACKWARDS	1
 
 #undef __ASSUME_SYSVIPC_DEFAULT_IPC_64
+#if __BYTE_ORDER == __BIG_ENDIAN
+# undef __ASSUME_SYSVIPC_SUPPORT_MODE32
+#endif

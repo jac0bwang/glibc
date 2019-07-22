@@ -83,6 +83,15 @@
 /* The generic default __IPC_64 value is 0x0, however some architectures
    require a different value of 0x100.  */
 #define __ASSUME_SYSVIPC_DEFAULT_IPC_64		1
+/* Assume that ipc_perm MODE kernel ABI has a 32-bit size or it is has padding
+   on the correct place (so if userland defines it as 32-bit, large values
+   will use the padding).
+   All supported architectures reserve 32-bit MODE space with extra padding.
+   However, some kernel ABI interfaces still expected a 16-bit field.  This
+   is only an issue is arch-defined IPC_PERM padding is on a wrong position
+   regarding endianness. For this case, the IPC control routines (msgctl,
+    semctl, and semctl) requires to shift the value for the correct place. */
+#define __ASSUME_SYSVIPC_SUPPORT_MODE32 1
 
 /* Support for p{read,write}v2 was added in 4.6.  However Linux default
    implementation does not assume the __ASSUME_* and instead use a fallback

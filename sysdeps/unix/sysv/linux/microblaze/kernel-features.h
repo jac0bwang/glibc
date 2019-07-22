@@ -15,6 +15,7 @@
    License along with the GNU C Library.  If not, see
    <http://www.gnu.org/licenses/>.  */
 
+#include <endian.h>
 
 /* All supported kernel versions for MicroBlaze have these syscalls.  */
 #define __ASSUME_SOCKET_SYSCALL		1
@@ -69,3 +70,6 @@
 #define __ASSUME_CLONE_BACKWARDS3
 
 #undef __ASSUME_SYSVIPC_DEFAULT_IPC_64
+#if __BYTE_ORDER == __BIG_ENDIAN
+# undef __ASSUME_SYSVIPC_SUPPORT_MODE32
+#endif
