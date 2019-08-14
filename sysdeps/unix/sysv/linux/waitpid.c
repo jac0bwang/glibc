@@ -17,7 +17,6 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
-#include <sysdep-cancel.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 

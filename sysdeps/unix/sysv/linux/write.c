@@ -17,7 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
-#include <sysdep-cancel.h>
+#include <sysdep.h>
 
 /* Write NBYTES of BUF to FD.  Return the number written, or -1.  */
 ssize_t

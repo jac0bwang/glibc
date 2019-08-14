@@ -16,7 +16,6 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <signal.h>
-#include <sysdep-cancel.h>
 #include <errno.h>
 
 int

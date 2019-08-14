@@ -17,7 +17,7 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <unistd.h>
-#include <sysdep-cancel.h>
+#include <sysdep.h>
 
 #ifndef __OFF_T_MATCHES_OFF64_T
 

@@ -19,7 +19,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <time.h>
-#include <sysdep-cancel.h>
 
 /* This implementation assumes that these is only a `nanosleep' system
    call.  So we have to remap all other activities.  */
