@@ -20,6 +20,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 
 static int fd[2];
@@ -32,7 +33,14 @@ tf (void *arg)
      write blocks.  */
   char buf[100000];
 
-  while (write (fd[1], buf, sizeof (buf)) > 0);
+  while (1)
+    {
+      /* Ignore EPIPE errors for case the SIGPIPE is handle before
+	 SIGCANCEL.  */
+      ssize_t ret = write (fd[1], buf, sizeof (buf));
+      if (ret == 0 || (ret == -1 && errno != EPIPE))
+       break;
+    }
 
   return (void *) 42l;
 }
