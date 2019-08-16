@@ -16,28 +16,28 @@
    <http://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
-#include <stddef.h>
-#include <sys/time.h>
+#include <time.h>
 #include <mach.h>
 
-/* Get the current time of day and timezone information,
-   putting it into *TV and *TZ.  If TZ is NULL, *TZ is not filled.
+/* Get the current time of day, putting it into *TS.
    Returns 0 on success, -1 on errors.  */
 int
-__gettimeofday (struct timeval *tv, struct timezone *tz)
+__clock_gettime (clockid_t clock_id, struct timespec *ts)
 {
   kern_return_t err;
+  time_value_t tv;
 
-  if (tz != NULL)
-    *tz = (struct timezone){0, 0}; /* XXX */
-
-  if (err = __host_get_time (__mach_host_self (), (time_value_t *) tv))
+  if (clock_id != CLOCK_REALTIME)
     {
-      errno = err;
+      errno = EINVAL;
       return -1;
     }
+
+  /* Could theoretically fail if __mach_host_self fails due to
+     resource exhaustion, but we assume this will never happen.  */
+  __host_get_time (__mach_host_self (), &tv);
+  TIME_VALUE_TO_TIMESPEC (&tv, ts);
   return 0;
 }
-libc_hidden_def (__gettimeofday)
-weak_alias (__gettimeofday, gettimeofday)
-libc_hidden_weak (gettimeofday)
+weak_alias (__clock_gettime, clock_gettime)
+libc_hidden_def (__clock_gettime)
