@@ -88,16 +88,16 @@ static pid_t test_pid;
 static void (*cleanup_function) (void);
 
 static void
-print_timestamp (const char *what, struct timeval tv)
+print_timestamp (const char *what, struct timespec tv)
 {
   struct tm tm;
   if (gmtime_r (&tv.tv_sec, &tm) == NULL)
-    printf ("%s: %lld.%06d\n",
-            what, (long long int) tv.tv_sec, (int) tv.tv_usec);
+    printf ("%s: %lld.%09ld\n",
+            what, (long long int) tv.tv_sec, tv.tv_nsec);
   else
-    printf ("%s: %04d-%02d-%02dT%02d:%02d:%02d.%06d\n",
+    printf ("%s: %04d-%02d-%02dT%02d:%02d:%02d.%09ld\n",
             what, 1900 + tm.tm_year, tm.tm_mon + 1, tm.tm_mday,
-            tm.tm_hour, tm.tm_min, tm.tm_sec, (int) tv.tv_usec);
+            tm.tm_hour, tm.tm_min, tm.tm_sec, tv.tv_nsec);
 }
 
 /* Timeout handler.  We kill the child and exit with an error.  */
@@ -110,8 +110,8 @@ signal_handler (int sig)
 
   /* Do this first to avoid further interference from the
      subprocess.  */
-  struct timeval now;
-  bool now_available = gettimeofday (&now, NULL) == 0;
+  struct timespec now;
+  bool now_available = clock_gettime (CLOCK_REALTIME, &now) == 0;
   struct stat64 st;
   bool st_available = fstat64 (STDOUT_FILENO, &st) == 0 && st.st_mtime != 0;
 
@@ -168,9 +168,7 @@ signal_handler (int sig)
   if (now_available)
     print_timestamp ("Termination time", now);
   if (st_available)
-    print_timestamp ("Last write to standard output",
-                     (struct timeval) { st.st_mtim.tv_sec,
-                         st.st_mtim.tv_nsec / 1000 });
+    print_timestamp ("Last write to standard output", st.st_mtim);
 
   /* Exit with an error.  */
   exit (1);

@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <hurd.h>
+#include <mach.h>
 
 /* XXX Temporary cheezoid implementation; see __setitmr.c.  */
 
@@ -61,7 +62,7 @@ __getitimer (enum __itimer_which which, struct itimerval *value)
     }
 
   /* Get the time now.  */
-  if (__gettimeofday (&elapsed, NULL) < 0)
+  if (__host_get_time (__mach_host_self (), (time_value_t *) &elapsed) < 0)
     return -1;
 
   /* Extract the current timer setting; and the time it was set, so we can

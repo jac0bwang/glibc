@@ -23,6 +23,7 @@
 #include <hurd/signal.h>
 #include <hurd/sigpreempt.h>
 #include <hurd/msg_request.h>
+#include <mach.h>
 #include <mach/message.h>
 
 /* XXX Temporary cheezoid implementation of ITIMER_REAL/SIGALRM.  */
@@ -239,7 +240,7 @@ setitimer_locked (const struct itimerval *new, struct itimerval *old,
   if ((newval.it_value.tv_sec | newval.it_value.tv_usec) != 0 || old != NULL)
     {
       /* Calculate how much time is remaining for the pending alarm.  */
-      if (__gettimeofday (&now, NULL) < 0)
+      if (__host_get_time (__mach_host_self (), (time_value_t *) &now) < 0)
 	{
 	  __spin_unlock (&_hurd_itimer_lock);
 	  _hurd_critical_section_unlock (crit);
