@@ -1,4 +1,5 @@
-/* Copyright (C) 1998-2019 Free Software Foundation, Inc.
+/* adjtime -- adjust the system clock.  Linux/Alpha/tv32 version.
+   Copyright (C) 2019 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -12,19 +13,16 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library.  If not, see
+   License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
 #include <shlib-compat.h>
-#include <sysdep.h>
-#include <sys/time.h>
-
 
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_1)
-struct timeval32
-{
-    int tv_sec, tv_usec;
-};
+
+#include <sys/time.h>
+#include <sys/timex.h>
+#include <tv32-compat.h>
 
 struct timex32 {
 	unsigned int modes;	/* mode selector */
@@ -55,40 +53,78 @@ struct timex32 {
 	int  :32; int  :32; int  :32; int  :32;
 };
 
-#define TIMEVAL		timeval32
-#define TIMEX		timex32
-#define ADJTIME		attribute_compat_text_section __adjtime_tv32
-#define ADJTIMEX(x)	INLINE_SYSCALL (old_adjtimex, 1, x)
-#define ADJTIMEX32(x)	INLINE_SYSCALL (old_adjtimex, 1, x)
+int
+attribute_compat_text_section
+__adjtime_tv32 (const struct timeval32 *itv, struct timeval32 *otv)
+{
+  struct timeval itv64, otv64;
+  TV32_TO_TV64 (&itv64, itv);
 
-#include <sysdeps/unix/sysv/linux/adjtime.c>
+  if (__adjtime (&itv64, &otv64) == -1)
+    return -1;
 
-int attribute_compat_text_section
-__adjtimex_tv32 (struct timex32 *tx) { return ADJTIMEX (tx); }
+  TV64_TO_TV32 (otv, &itv64);
+  return 0;
+}
+
+int
+attribute_compat_text_section
+__adjtimex_tv32 (struct timex32 *tx)
+{
+  struct timex tx64;
+  memset (&tx64, 0, sizeof tx64);
+  tx64.modes     = tx->modes;
+  tx64.offset    = tx->offset;
+  tx64.freq      = tx->freq;
+  tx64.maxerror  = tx->maxerror;
+  tx64.esterror  = tx->esterror;
+  tx64.status    = tx->status;
+  tx64.constant  = tx->constant;
+  tx64.precision = tx->precision;
+  tx64.tolerance = tx->tolerance;
+  tx64.tick      = tx->tick;
+  tx64.ppsfreq   = tx->ppsfreq;
+  tx64.jitter    = tx->jitter;
+  tx64.shift     = tx->shift;
+  tx64.stabil    = tx->stabil;
+  tx64.jitcnt    = tx->jitcnt;
+  tx64.calcnt    = tx->calcnt;
+  tx64.errcnt    = tx->errcnt;
+  tx64.stbcnt    = tx->stbcnt;
+  TV32_TO_TV64 (&tx64.time, &tx->time);
+
+  int status = __adjtimex (&tx64);
+  if (status < 0)
+    return status;
+
+  memset (tx, 0, sizeof *tx);
+  tx->modes     = tx64.modes;
+  tx->offset    = tx64.offset;
+  tx->freq      = tx64.freq;
+  tx->maxerror  = tx64.maxerror;
+  tx->esterror  = tx64.esterror;
+  tx->status    = tx64.status;
+  tx->constant  = tx64.constant;
+  tx->precision = tx64.precision;
+  tx->tolerance = tx64.tolerance;
+  tx->tick      = tx64.tick;
+  tx->ppsfreq   = tx64.ppsfreq;
+  tx->jitter    = tx64.jitter;
+  tx->shift     = tx64.shift;
+  tx->stabil    = tx64.stabil;
+  tx->jitcnt    = tx64.jitcnt;
+  tx->calcnt    = tx64.calcnt;
+  tx->errcnt    = tx64.errcnt;
+  tx->stbcnt    = tx64.stbcnt;
+  TV64_TO_TV32 (&tx->time, &tx64.time);
+
+  return status;
+}
 
 strong_alias (__adjtimex_tv32, __adjtimex_tv32_1);
 strong_alias (__adjtimex_tv32, __adjtimex_tv32_2);
 compat_symbol (libc, __adjtimex_tv32_1, __adjtimex, GLIBC_2_0);
 compat_symbol (libc, __adjtimex_tv32_2, adjtimex, GLIBC_2_0);
 compat_symbol (libc, __adjtime_tv32, adjtime, GLIBC_2_0);
+
 #endif /* SHLIB_COMPAT */
-
-#undef TIMEVAL
-#undef TIMEX
-#undef ADJTIME
-#undef ADJTIMEX
-#define TIMEVAL		timeval
-#define TIMEX		timex
-#define ADJTIMEX(x)	INLINE_SYSCALL (adjtimex, 1, x)
-
-#include <sysdeps/unix/sysv/linux/adjtime.c>
-
-int
-__adjtimex_tv64 (struct timex *tx) { return ADJTIMEX (tx); }
-
-libc_hidden_ver (__adjtimex_tv64, __adjtimex)
-strong_alias (__adjtimex_tv64, __adjtimex_tv64p);
-weak_alias (__adjtimex_tv64, ntp_adjtime);
-versioned_symbol (libc, __adjtimex_tv64, __adjtimex, GLIBC_2_1);
-versioned_symbol (libc, __adjtimex_tv64p, adjtimex, GLIBC_2_1);
-versioned_symbol (libc, __adjtime, adjtime, GLIBC_2_1);
